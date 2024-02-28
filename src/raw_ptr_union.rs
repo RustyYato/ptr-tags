@@ -24,6 +24,10 @@ impl<Tags: PtrList> RawPtrUnion<Tags> {
         let ptr = self.ptr.as_ptr().wrapping_sub(tag);
         let tag = tag as u8;
 
+        if tag >= Tags::LEN {
+            unsafe { core::hint::unreachable_unchecked() }
+        }
+
         (unsafe { NonNull::new_unchecked(ptr.cast()) }, tag)
     }
 

@@ -31,6 +31,10 @@ impl<Tags: PtrList> CopyPtrUnion<Tags> {
         *self = Self::new(value);
     }
 
+    pub fn tag(&self) -> usize {
+        self.raw.split().1 as usize
+    }
+
     pub fn is<P: ErasablePtr, N: Peano>(&self) -> bool
     where
         Tags: Access<P, N>,

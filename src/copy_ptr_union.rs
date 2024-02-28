@@ -43,6 +43,13 @@ impl<Tags: PtrList> CopyPtrUnion<Tags> {
         RawPtrUnion::ptr_hash(&this.raw, state)
     }
 
+    pub fn map_any<F: MapperOutput>(self, f: F) -> F::Output
+    where
+        Tags: Map<F>,
+    {
+        unsafe { self.raw.map_any(f) }
+    }
+
     pub fn is<P: ErasablePtr, N: Peano>(&self) -> bool
     where
         Tags: Access<P, N>,
@@ -122,5 +129,53 @@ impl<T: ErasablePtr> CopyPtrUnion<TypeList![T]> {
 impl CopyPtrUnion<TypeList![]> {
     pub fn unreachable(self) -> ! {
         self.raw.unreachable()
+    }
+}
+
+impl<Tags> Eq for CopyPtrUnion<Tags> where Tags: PtrList + Map<EqAny> + Map<PartialEqAny> {}
+impl<Tags> PartialEq for CopyPtrUnion<Tags>
+where
+    Tags: PtrList + Map<PartialEqAny>,
+{
+    fn eq(&self, other: &Self) -> bool {
+        let (ptr, tag) = other.raw.split();
+        self.raw.split().1 == tag && self.map_any(PartialEqAny(ptr))
+    }
+}
+
+impl<Tags> PartialOrd for CopyPtrUnion<Tags>
+where
+    Tags: PtrList + Map<PartialEqAny> + Map<PartialOrdAny>,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        let (ptr, tag) = other.raw.split();
+
+        match self.raw.split().1.cmp(&tag) {
+            o @ (std::cmp::Ordering::Less | std::cmp::Ordering::Greater) => Some(o),
+            std::cmp::Ordering::Equal => self.map_any(PartialOrdAny(ptr)),
+        }
+    }
+}
+
+impl<Tags> Ord for CopyPtrUnion<Tags>
+where
+    Tags: PtrList + Map<PartialEqAny> + Map<PartialOrdAny> + Map<EqAny> + Map<OrdAny>,
+{
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        let (ptr, tag) = other.raw.split();
+
+        match self.raw.split().1.cmp(&tag) {
+            o @ (std::cmp::Ordering::Less | std::cmp::Ordering::Greater) => o,
+            std::cmp::Ordering::Equal => self.map_any(OrdAny(ptr)),
+        }
+    }
+}
+
+impl<Tags> core::hash::Hash for CopyPtrUnion<Tags>
+where
+    Tags: PtrList + MapHash,
+{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        unsafe { self.raw.map_hash(state) }
     }
 }

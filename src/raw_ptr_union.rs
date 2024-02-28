@@ -39,6 +39,23 @@ impl<Tags: PtrList> RawPtrUnion<Tags> {
         core::ptr::hash(this.ptr.as_ptr(), state)
     }
 
+    pub unsafe fn map_any<F: MapperOutput>(self, f: F) -> F::Output
+    where
+        Tags: Map<F>,
+    {
+        let (ptr, tag) = self.split();
+        Tags::map(ptr, tag, f)
+    }
+
+    pub unsafe fn map_hash<S: core::hash::Hasher>(self, state: &mut S)
+    where
+        Tags: MapHash,
+    {
+        let (ptr, tag) = self.split();
+        state.write_u8(tag);
+        Tags::map_hash(ptr, tag, state)
+    }
+
     const fn validate_tag(tag: u8) -> usize {
         #[inline(never)]
         const fn validate_tag_failed() -> ! {

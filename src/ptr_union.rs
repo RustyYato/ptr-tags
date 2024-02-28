@@ -41,6 +41,10 @@ impl<Tags: PtrList> PtrUnion<Tags> {
         RawPtrUnion::ptr_eq(&this.raw, &other.raw)
     }
 
+    pub fn ptr_hash<S: core::hash::Hasher>(this: &Self, state: &mut S) {
+        RawPtrUnion::ptr_hash(&this.raw, state)
+    }
+
     pub fn is<P: ErasablePtr, N: Peano>(&self) -> bool
     where
         Tags: Access<P, N>,

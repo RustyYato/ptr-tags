@@ -35,6 +35,10 @@ impl<Tags: PtrList> RawPtrUnion<Tags> {
         this.ptr == other.ptr
     }
 
+    pub fn ptr_hash<S: core::hash::Hasher>(this: &Self, state: &mut S) {
+        core::ptr::hash(this.ptr.as_ptr(), state)
+    }
+
     const fn validate_tag(tag: u8) -> usize {
         #[inline(never)]
         const fn validate_tag_failed() -> ! {

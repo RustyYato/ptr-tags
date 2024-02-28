@@ -128,7 +128,7 @@ unsafe impl<T: ErasablePtr, Ts: PtrList> PtrList for Cons<T, Ts> {
     unsafe fn drop_at(ptr: NonNull<()>, tag: u8) {
         if let Some(tag) = tag.checked_sub(1) {
             Ts::drop_at(ptr, tag)
-        } else {
+        } else if core::mem::needs_drop::<T>() {
             let _ = T::from_raw(ptr);
         }
     }

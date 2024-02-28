@@ -37,6 +37,10 @@ impl<Tags: PtrList> PtrUnion<Tags> {
         self.raw.split().1 as usize
     }
 
+    pub fn ptr_eq(this: &Self, other: &Self) -> bool {
+        RawPtrUnion::ptr_eq(&this.raw, &other.raw)
+    }
+
     pub fn is<P: ErasablePtr, N: Peano>(&self) -> bool
     where
         Tags: Access<P, N>,

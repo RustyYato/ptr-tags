@@ -31,6 +31,10 @@ impl<Tags: PtrList> RawPtrUnion<Tags> {
         (unsafe { NonNull::new_unchecked(ptr.cast()) }, tag)
     }
 
+    pub fn ptr_eq(this: &Self, other: &Self) -> bool {
+        this.ptr == other.ptr
+    }
+
     const fn validate_tag(tag: u8) -> usize {
         #[inline(never)]
         const fn validate_tag_failed() -> ! {
